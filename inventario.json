@@ -1,0 +1,14 @@
+[
+  {
+    "id": "101",
+    "modelo": "Nodo Sensor Humedal",
+    "version": "v1.0",
+    "estado": "🟢 En Stock"
+  },
+  {
+    "id": "102",
+    "modelo": "Monitor PM3003Q",
+    "version": "v2.1",
+    "estado": "🔵 En Terreno"
+  }
+]
