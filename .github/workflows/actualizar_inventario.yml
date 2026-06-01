@@ -1,0 +1,76 @@
+name: Actualizar Base de Datos
+
+# 1. ¿Cuándo se activa este robot?
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  procesar_registro:
+    # 2. Solo actúa si el Issue tiene la etiqueta del formulario
+    if: contains(github.event.issue.labels.*.name, 'nuevo-registro')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Modificar inventario.json
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          import os, json, re
+          body = os.environ['ISSUE_BODY']
+          
+          # Función para extraer el texto del formulario
+          def extraer(campo):
+              match = re.search(rf"### {campo}\s*(.*?)(?=###|$)", body, re.DOTALL)
+              return match.group(1).strip() if match else "N/A"
+
+          # 3. Armar el nuevo paquete de datos
+          nuevo_item = {
+              "id": extraer("ID Numérico"),
+              "modelo": extraer("Modelo del Dispositivo"),
+              "version": extraer("Versión de Hardware"),
+              "estado": extraer("Estado Actual")
+          }
+
+          # Leer archivo actual
+          with open('inventario.json', 'r', encoding='utf-8') as f:
+              datos = json.load(f)
+          
+          # 4. Actualizar si existe, o agregar si es nuevo
+          for i, item in enumerate(datos):
+              if item['id'] == nuevo_item['id']:
+                  datos[i] = nuevo_item
+                  break
+          else:
+              datos.append(nuevo_item)
+
+          # Guardar archivo
+          with open('inventario.json', 'w', encoding='utf-8') as f:
+              json.dump(datos, f, indent=2, ensure_ascii=False)
+
+        shell: python
+
+      - name: Guardar cambios en GitHub (Commit)
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
+          git add inventario.json
+          git commit -m "Registro automático: Equipo #${{ github.event.issue.number }}"
+          git push
+
+      - name: Cerrar el Issue exitosamente
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue close ${{ github.event.issue.number }} -c "✅ ¡Registro exitoso! El `inventario.json` ha sido actualizado y la web reflejará el cambio en breve."
