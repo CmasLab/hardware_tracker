@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tracking I+D</title>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; padding: 20px; background-color: #f6f8fa; display: flex; justify-content: center; }
+        .card { background: white; border: 1px solid #d0d7de; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); width: 100%; max-width: 400px; }
+        h1 { color: #24292f; font-size: 1.5rem; border-bottom: 1px solid #d0d7de; padding-bottom: 10px; }
+        .etiqueta { font-size: 0.85rem; color: #57606a; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 15px; }
+        .valor { font-size: 1.1rem; color: #24292f; font-weight: 500; margin-top: 5px; }
+        .error { color: #cf222e; font-weight: bold; text-align: center; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Datos del Dispositivo</h1>
+        <div id="resultado">Cargando información...</div>
+    </div>
+
+    <script>
+        // 1. Extraer el ID numérico de la URL
+        const parametros = new URLSearchParams(window.location.search);
+        const idBuscado = parametros.get('id');
+
+        const divResultado = document.getElementById('resultado');
+
+        if (idBuscado) {
+            // 2. Descargar el archivo de inventario
+            fetch('inventario.json')
+                .then(response => response.json())
+                .then(data => {
+                    // 3. Buscar si el ID existe en nuestros datos
+                    const dispositivo = data.find(item => item.id === idBuscado);
+                    
+                    if (dispositivo) {
+                        divResultado.innerHTML = `
+                            <div class="etiqueta">ID de Registro</div>
+                            <div class="valor">#${dispositivo.id}</div>
+                            
+                            <div class="etiqueta">Modelo</div>
+                            <div class="valor">${dispositivo.modelo}</div>
+                            
+                            <div class="etiqueta">Versión Hardware</div>
+                            <div class="valor">${dispositivo.version}</div>
+                            
+                            <div class="etiqueta">Estado Actual</div>
+                            <div class="valor">${dispositivo.estado}</div>
+                        `;
+                    } else {
+                        divResultado.innerHTML = `<div class="error">No se encontró ningún equipo registrado con el ID: ${idBuscado}</div>`;
+                    }
+                })
+                .catch(error => {
+                    divResultado.innerHTML = `<div class="error">Error de conexión con la base de datos.</div>`;
+                });
+        } else {
+            divResultado.innerHTML = `<div class="etiqueta" style="text-align: center;">Por favor, escanea un código o ingresa un ID válido en la barra de direcciones.</div>`;
+        }
+    </script>
+</body>
+</html>
