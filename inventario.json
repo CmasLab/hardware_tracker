@@ -12,5 +12,12 @@
     "modelo": "Monitor PM3003Q",
     "version": "v2.1",
     "estado": "🔵 En Terreno"
+  },
+    {
+    "familia": "Hiri",
+    "id": "2",
+    "modelo": "Monitor PM3003Q",
+    "version": "v2.1",
+    "estado": "En Stock"
   }
 ]
