@@ -1,14 +1,14 @@
 [
   {
-    "id": "101",
     "familia": "Hiri",
+    "id": "1",
     "modelo": "Sensor de Humedal",
     "version": "v1.0",
     "estado": "🟢 En Stock"
   },
   {
-    "id": "102",
-    "familia": "Línea Base",
+    "familia": "Linea base",
+    "id": "1",
     "modelo": "Monitor PM3003Q",
     "version": "v2.1",
     "estado": "🔵 En Terreno"
