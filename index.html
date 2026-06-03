@@ -10,7 +10,9 @@
         h1 { color: #24292f; font-size: 1.5rem; border-bottom: 1px solid #d0d7de; padding-bottom: 10px; margin-top: 0; text-align: center;}
         
         .search-container { display: flex; gap: 10px; margin-bottom: 25px; }
-        .search-input { flex: 1; padding: 10px; border: 1px solid #d0d7de; border-radius: 6px; font-size: 1rem; }
+        .search-input { padding: 10px; border: 1px solid #d0d7de; border-radius: 6px; font-size: 1rem; }
+        .input-f { flex: 2; }
+        .input-id { flex: 1; min-width: 60px; }
         .search-btn { background-color: #24292f; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
         .search-btn:hover { background-color: #000000; }
 
@@ -32,7 +34,8 @@
         <h1>Tracking de Hardware</h1>
         
         <div class="search-container">
-            <input type="text" id="inputBusqueda" class="search-input" placeholder="ID o Familia (ej. 101 o Aire)">
+            <input type="text" id="inputF" class="search-input input-f" placeholder="Familia (ej. Gases)">
+            <input type="number" id="inputID" class="search-input input-id" placeholder="ID (ej. 1)">
             <button onclick="ejecutarBusqueda()" class="search-btn">Buscar</button>
         </div>
 
@@ -40,107 +43,110 @@
     </div>
 
     <script>
-        // --- FUNCIÓN DE BÚSQUEDA ---
+        // --- 1. FUNCIÓN DE BÚSQUEDA COMPUESTA ---
         function ejecutarBusqueda() {
-            const query = document.getElementById('inputBusqueda').value.trim();
-            if (query) {
-                // Se usa ?q= en lugar de ?id= para búsquedas generales
-                window.location.href = "?q=" + encodeURIComponent(query);
-            }
+            const f = document.getElementById('inputF').value.trim();
+            const id = document.getElementById('inputID').value.trim();
+            
+            let url = "?";
+            if (f) url += "f=" + encodeURIComponent(f);
+            if (id) url += (f ? "&" : "") + "id=" + encodeURIComponent(id);
+            
+            if (f || id) window.location.href = url;
         }
 
-        document.getElementById('inputBusqueda').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') { ejecutarBusqueda(); }
-        });
+        document.getElementById('inputF').addEventListener('keypress', e => { if (e.key === 'Enter') ejecutarBusqueda(); });
+        document.getElementById('inputID').addEventListener('keypress', e => { if (e.key === 'Enter') ejecutarBusqueda(); });
 
-        // --- LÓGICA PRINCIPAL ---
+        // --- 2. LECTURA DE PARÁMETROS ---
         const parametros = new URLSearchParams(window.location.search);
-        const queryBuscada = parametros.get('q');
+        const urlF = parametros.get('f');
+        const urlID = parametros.get('id');
         const divResultado = document.getElementById('resultado');
 
         // REEMPLAZA ESTO POR TU URL REAL
-        const urlEdicionJson = "https://github.com/CmasLab/hardware_tracker/blob/Dev/edit/main/inventario.json";
+        const urlEdicionJson = "https://github.com/TU_USUARIO/TU_REPOSITORIO/edit/main/inventario.json";
 
-        if (queryBuscada) {
-            document.getElementById('inputBusqueda').value = queryBuscada;
+        if (urlF || urlID) {
+            if (urlF) document.getElementById('inputF').value = urlF;
+            if (urlID) document.getElementById('inputID').value = urlID;
 
             fetch('inventario.json')
                 .then(response => response.json())
                 .then(data => {
-                    // 1. Intentar coincidencia exacta por ID
-                    const matchId = data.find(item => item.id === queryBuscada);
                     
-                    if (matchId) {
-                        // VISTA DE PERFIL INDIVIDUAL
-                        divResultado.innerHTML = `
-                            <div class="etiqueta">ID de Registro</div>
-                            <div class="valor">#${matchId.id}</div>
-                            
-                            <div class="etiqueta">Familia</div>
-                            <div class="valor">${matchId.familia}</div>
-                            
-                            <div class="etiqueta">Modelo</div>
-                            <div class="valor">${matchId.modelo}</div>
-                            
-                            <div class="etiqueta">Versión Hardware</div>
-                            <div class="valor">${matchId.version}</div>
-                            
-                            <div class="etiqueta">Estado Actual</div>
-                            <div class="valor">${matchId.estado}</div>
-                            
-                            <hr style="margin-top: 25px; border: 0; border-top: 1px solid #d0d7de;">
-                            <a href="${urlEdicionJson}" target="_blank" class="btn btn-edit">✏️ Editar estado en GitHub</a>
-                        `;
-                        return;
-                    } 
-                    
-                    // 2. Si no es un ID, buscar por Familia (ignorando mayúsculas)
-                    const queryLower = queryBuscada.toLowerCase();
-                    const matchesFamilia = data.filter(item => 
-                        item.familia && item.familia.toLowerCase().includes(queryLower)
-                    );
-
-                    if (matchesFamilia.length > 0) {
-                        // VISTA DE LISTA POR FAMILIA
-                        let htmlLista = `<div class="etiqueta" style="margin-top:0;">Resultados para Familia: ${queryBuscada}</div>`;
+                    // CASO A: Búsqueda exacta (Familia + ID)
+                    if (urlF && urlID) {
+                        const dispositivo = data.find(item => 
+                            item.familia && item.familia.toLowerCase() === urlF.toLowerCase() && 
+                            item.id === urlID
+                        );
                         
-                        matchesFamilia.forEach(disp => {
-                            htmlLista += `
-                                <div class="lista-item">
-                                    <div>
-                                        <div style="font-weight:bold; color:#24292f;">#${disp.id} - ${disp.modelo}</div>
-                                        <div style="font-size:0.85rem; color:#57606a;">${disp.estado}</div>
-                                    </div>
-                                    <a href="?q=${disp.id}" class="btn-sm">Ver</a>
+                        if (dispositivo) {
+                            divResultado.innerHTML = `
+                                <div class="etiqueta">Familia y Registro</div>
+                                <div class="valor">${dispositivo.familia} - #${dispositivo.id}</div>
+                                <div class="etiqueta">Modelo</div>
+                                <div class="valor">${dispositivo.modelo || 'N/A'}</div>
+                                <div class="etiqueta">Versión Hardware</div>
+                                <div class="valor">${dispositivo.version || 'N/A'}</div>
+                                <div class="etiqueta">Estado Actual</div>
+                                <div class="valor">${dispositivo.estado || 'N/A'}</div>
+                                <hr style="margin-top: 25px; border: 0; border-top: 1px solid #d0d7de;">
+                                <a href="${urlEdicionJson}" target="_blank" class="btn btn-edit">✏️ Editar estado en GitHub</a>
+                            `;
+                        } else {
+                            divResultado.innerHTML = `
+                                <div class="error">⚠️ No existe el ID #${urlID} en la familia "${urlF}".</div>
+                                <a href="${urlEdicionJson}" target="_blank" class="btn btn-add">➕ Registrar en inventario.json</a>
+                                <div style="background-color: #f6f8fa; padding: 10px; margin-top: 15px; border-radius: 6px; font-size: 0.8rem; font-family: monospace; color: #57606a; text-align: left; overflow-x: auto;">
+                                    ,{<br>
+                                    &nbsp;&nbsp;"familia": "${urlF}",<br>
+                                    &nbsp;&nbsp;"id": "${urlID}",<br>
+                                    &nbsp;&nbsp;"modelo": "Modelo",<br>
+                                    &nbsp;&nbsp;"version": "v1.0",<br>
+                                    &nbsp;&nbsp;"estado": "🟢 En Stock"<br>
+                                    }
                                 </div>
                             `;
-                        });
-                        divResultado.innerHTML = htmlLista;
-                    } else {
-                        // 3. Si no hay ID ni Familia, mostrar opción de registro
-                        divResultado.innerHTML = `
-                            <div class="error">⚠️ No se encontraron resultados para "${queryBuscada}".</div>
-                            <p style="text-align: center; color: #57606a; font-size: 0.9rem;">Si es un ID nuevo, puedes registrar el equipo agregándolo al final del archivo de inventario.</p>
-                            
-                            <a href="${urlEdicionJson}" target="_blank" class="btn btn-add">➕ Registrar en inventario.json</a>
-                            
-                            <div style="background-color: #f6f8fa; padding: 10px; margin-top: 15px; border-radius: 6px; font-size: 0.8rem; font-family: monospace; color: #57606a; text-align: left; overflow-x: auto;">
-                                ,{<br>
-                                &nbsp;&nbsp;"id": "${queryBuscada}",<br>
-                                &nbsp;&nbsp;"familia": "Nueva Familia",<br>
-                                &nbsp;&nbsp;"modelo": "Modelo",<br>
-                                &nbsp;&nbsp;"version": "v1.0",<br>
-                                &nbsp;&nbsp;"estado": "🟢 En Stock"<br>
-                                }
-                            </div>
-                        `;
+                        }
+                    } 
+                    
+                    // CASO B: Búsqueda general (Solo Familia)
+                    else if (urlF && !urlID) {
+                        const matchesFamilia = data.filter(item => 
+                            item.familia && item.familia.toLowerCase().includes(urlF.toLowerCase())
+                        );
+
+                        if (matchesFamilia.length > 0) {
+                            let htmlLista = `<div class="etiqueta" style="margin-top:0;">Equipos en Familia: ${urlF}</div>`;
+                            matchesFamilia.forEach(disp => {
+                                htmlLista += `
+                                    <div class="lista-item">
+                                        <div>
+                                            <div style="font-weight:bold; color:#24292f;">#${disp.id} - ${disp.modelo || 'Sin modelo'}</div>
+                                            <div style="font-size:0.85rem; color:#57606a;">${disp.estado || 'N/A'}</div>
+                                        </div>
+                                        <a href="?f=${encodeURIComponent(disp.familia)}&id=${disp.id}" class="btn-sm">Ver</a>
+                                    </div>
+                                `;
+                            });
+                            divResultado.innerHTML = htmlLista;
+                        } else {
+                            divResultado.innerHTML = `<div class="error">No se encontraron equipos en la familia "${urlF}".</div>`;
+                        }
+                    }
+
+                    // CASO C: Búsqueda errónea (Solo ID)
+                    else if (!urlF && urlID) {
+                        divResultado.innerHTML = `<div class="error">Por favor, especifica también a qué Familia pertenece el ID #${urlID}.</div>`;
                     }
                 })
                 .catch(error => {
                     divResultado.innerHTML = `<div class="error">Error leyendo inventario.json. Verifica la sintaxis del archivo.</div>`;
                 });
         } else {
-            divResultado.innerHTML = `<div class="etiqueta" style="text-align: center; padding: 20px 0;">Ingresa un ID o una Familia en el buscador superior.</div>`;
+            divResultado.innerHTML = `<div class="etiqueta" style="text-align: center; padding: 20px 0;">Ingresa la Familia y el ID en el buscador para comenzar.</div>`;
         }
     </script>
 </body>
