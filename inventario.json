@@ -1,14 +1,14 @@
 [
   {
     "id": "101",
-    "familia": "Monitor de Gases",
+    "familia": "Hiri",
     "modelo": "Sensor de Humedal",
     "version": "v1.0",
     "estado": "🟢 En Stock"
   },
   {
     "id": "102",
-    "familia": "Calidad de Aire",
+    "familia": "Línea Base",
     "modelo": "Monitor PM3003Q",
     "version": "v2.1",
     "estado": "🔵 En Terreno"
