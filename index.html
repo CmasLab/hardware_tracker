@@ -93,12 +93,12 @@
                                 <div class="etiqueta">Estado Actual</div>
                                 <div class="valor">${dispositivo.estado || 'N/A'}</div>
                                 <hr style="margin-top: 25px; border: 0; border-top: 1px solid #d0d7de;">
-                                <a href="${urlEdicionJson}" target="_blank" class="btn btn-edit">✏️ Editar estado en GitHub</a>
+                                <a href="${https://github.com/CmasLab/hardware_tracker/blob/Dev/inventario.json}" target="_blank" class="btn btn-edit">✏️ Editar estado en GitHub</a>
                             `;
                         } else {
                             divResultado.innerHTML = `
                                 <div class="error">⚠️ No existe el ID #${urlID} en la familia "${urlF}".</div>
-                                <a href="${urlEdicionJson}" target="_blank" class="btn btn-add">➕ Registrar en inventario.json</a>
+                                <a href="${https://github.com/CmasLab/hardware_tracker/blob/Dev/inventario.json}" target="_blank" class="btn btn-add">➕ Registrar en inventario.json</a>
                                 <div style="background-color: #f6f8fa; padding: 10px; margin-top: 15px; border-radius: 6px; font-size: 0.8rem; font-family: monospace; color: #57606a; text-align: left; overflow-x: auto;">
                                     ,{<br>
                                     &nbsp;&nbsp;"familia": "${urlF}",<br>
