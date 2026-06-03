@@ -3,14 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tracking I+D</title>
+    <title>Tracking I+D - PMV</title>
     <style>
         body { font-family: system-ui, -apple-system, sans-serif; padding: 20px; background-color: #f6f8fa; display: flex; justify-content: center; }
         .card { background: white; border: 1px solid #d0d7de; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); width: 100%; max-width: 400px; }
-        h1 { color: #24292f; font-size: 1.5rem; border-bottom: 1px solid #d0d7de; padding-bottom: 10px; }
+        h1 { color: #24292f; font-size: 1.5rem; border-bottom: 1px solid #d0d7de; padding-bottom: 10px; margin-top: 0; text-align: center;}
         .etiqueta { font-size: 0.85rem; color: #57606a; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 15px; }
         .valor { font-size: 1.1rem; color: #24292f; font-weight: 500; margin-top: 5px; }
         .error { color: #cf222e; font-weight: bold; text-align: center; margin-top: 20px; }
+        .btn { display: block; text-align: center; text-decoration: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; margin-top: 20px; }
+        .btn-edit { background-color: #f6f8fa; color: #0969da; border: 1px solid #d0d7de; }
+        .btn-add { background-color: #2da44e; color: white; border: 1px solid #2da44e; }
     </style>
 </head>
 <body>
@@ -20,21 +23,24 @@
     </div>
 
     <script>
-        // 1. Extraer el ID numérico de la URL
+        // 1. Extraer el ID de la URL
         const parametros = new URLSearchParams(window.location.search);
         const idBuscado = parametros.get('id');
-
         const divResultado = document.getElementById('resultado');
 
+        // --- ¡ATENCIÓN! CAMBIA ESTO POR TU URL REAL ---
+        // Ejemplo: "https://github.com/silva-dev/hardware-tracking/edit/main/inventario.json"
+        const urlEdicionJson = "https://github.com/TU_USUARIO/TU_REPOSITORIO/edit/main/inventario.json";
+
         if (idBuscado) {
-            // 2. Descargar el archivo de inventario
+            // 2. Descargar el JSON
             fetch('inventario.json')
                 .then(response => response.json())
                 .then(data => {
-                    // 3. Buscar si el ID existe en nuestros datos
                     const dispositivo = data.find(item => item.id === idBuscado);
                     
                     if (dispositivo) {
+                        // CASO A: EL DISPOSITIVO EXISTE
                         divResultado.innerHTML = `
                             <div class="etiqueta">ID de Registro</div>
                             <div class="valor">#${dispositivo.id}</div>
@@ -47,16 +53,36 @@
                             
                             <div class="etiqueta">Estado Actual</div>
                             <div class="valor">${dispositivo.estado}</div>
+                            
+                            <hr style="margin-top: 25px; border: 0; border-top: 1px solid #d0d7de;">
+                            <a href="${urlEdicionJson}" target="_blank" class="btn btn-edit">✏️ Editar estado en GitHub</a>
                         `;
                     } else {
-                        divResultado.innerHTML = `<div class="error">No se encontró ningún equipo registrado con el ID: ${idBuscado}</div>`;
+                        // CASO B: EL DISPOSITIVO NO EXISTE
+                        divResultado.innerHTML = `
+                            <div class="error">⚠️ No se encontró el equipo #${idBuscado}.</div>
+                            <p style="text-align: center; color: #57606a; font-size: 0.9rem;">Este ID está disponible. Para registrar el equipo, agrégalo al final del archivo de inventario.</p>
+                            
+                            <a href="${urlEdicionJson}" target="_blank" class="btn btn-add">➕ Registrar en inventario.json</a>
+                            
+                            <div style="background-color: #f6f8fa; padding: 10px; margin-top: 15px; border-radius: 6px; font-size: 0.8rem; font-family: monospace; color: #57606a;">
+                                Copia y pega esto al final del archivo:<br><br>
+                                ,{<br>
+                                &nbsp;&nbsp;"id": "${idBuscado}",<br>
+                                &nbsp;&nbsp;"modelo": "Nombre",<br>
+                                &nbsp;&nbsp;"version": "v1.0",<br>
+                                &nbsp;&nbsp;"estado": "🟢 En Stock"<br>
+                                }
+                            </div>
+                        `;
                     }
                 })
                 .catch(error => {
-                    divResultado.innerHTML = `<div class="error">Error de conexión con la base de datos.</div>`;
+                    divResultado.innerHTML = `<div class="error">Error de conexión con la base de datos. Asegúrate de que el archivo inventario.json existe.</div>`;
                 });
         } else {
-            divResultado.innerHTML = `<div class="etiqueta" style="text-align: center;">Por favor, escanea un código o ingresa un ID válido en la barra de direcciones.</div>`;
+            // CASO C: SE ENTRÓ SIN ID
+            divResultado.innerHTML = `<div class="etiqueta" style="text-align: center; padding: 20px 0;">Por favor, escanea el código QR de un dispositivo para ver su información.</div>`;
         }
     </script>
 </body>
