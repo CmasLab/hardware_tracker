@@ -16,12 +16,10 @@
         .search-btn { background-color: #24292f; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
         .search-btn:hover { background-color: #000000; }
 
-        /* Cuadrícula de metadatos */
         .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
         .etiqueta { font-size: 0.8rem; color: #57606a; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 10px; font-weight: bold;}
         .valor { font-size: 1.05rem; color: #24292f; font-weight: 500; margin-top: 2px; }
         
-        /* Secciones de historial */
         .seccion-historial { margin-top: 20px; padding-top: 15px; border-top: 1px dashed #d0d7de; }
         .titulo-historial { font-size: 0.9rem; color: #24292f; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;}
         .lista-historial { margin: 0; padding-left: 20px; font-size: 0.95rem; color: #24292f; }
@@ -72,24 +70,38 @@
         // REEMPLAZA ESTO POR TU URL REAL DE EDICIÓN
         const urlEdicionJson = "https://github.com/CmasLab/hardware_tracker/blob/Dev/inventario.json";
 
-        // Función auxiliar para renderizar listas de historial de manera limpia
+        // --- FUNCIÓN MEJORADA Y ANTIBOMBAS ---
         function generarHtmlLista(lista) {
-            if (!lista || lista.length === 0) return '<div class="sin-registro">Sin registros acumulados.</div>';
-            let html = '<ul class="lista-historial">';
-            lista.forEach(item => { html += `<li>${item}</li>`; });
-            html += '</ul>';
-            return html;
+            if (!lista || lista.length === 0) {
+                return '<div class="sin-registro">Sin registros acumulados.</div>';
+            }
+            
+            // Si por error alguien escribió un texto directo en vez de una lista []
+            if (typeof lista === 'string') {
+                return `<ul class="lista-historial"><li>${lista}</li></ul>`;
+            }
+            
+            // Si es una lista válida
+            if (Array.isArray(lista)) {
+                let html = '<ul class="lista-historial">';
+                lista.forEach(item => { html += `<li>${item}</li>`; });
+                html += '</ul>';
+                return html;
+            }
+            
+            return '<div class="sin-registro">Sin registros acumulados.</div>';
         }
 
         if (urlF || urlID) {
             if (urlF) document.getElementById('inputF').value = urlF;
             if (urlID) document.getElementById('inputID').value = urlID;
 
-            fetch('inventario.json')
+            // Se agrega un parámetro aleatorio (?t=...) para obligar al navegador 
+            // a descargar el JSON nuevo y saltarse la caché vieja de GitHub Pages
+            fetch('inventario.json?t=' + new Date().getTime())
                 .then(response => response.json())
                 .then(data => {
                     
-                    // CASO A: Búsqueda exacta (Familia + ID) -> Muestra la ficha técnica completa
                     if (urlF && urlID) {
                         const dispositivo = data.find(item => 
                             item.familia && item.familia.toLowerCase() === urlF.toLowerCase() && 
@@ -153,13 +165,9 @@
                                 <a href="${urlEdicionJson}" target="_blank" class="btn btn-edit">✏️ Editar Ficha / Registrar Evento</a>
                             `;
                         } else {
-                            // Dispositivo no encontrado -> Generador de plantilla con los nuevos campos vacíos
                             divResultado.innerHTML = `
                                 <div class="error">⚠️ No existe el ID #${urlID} en la familia "${urlF}".</div>
-                                <p style="text-align: center; color: #57606a; font-size: 0.9rem;">Copia la estructura inferior e incorpórala al final del archivo en GitHub para darlo de alta.</p>
-                                
                                 <a href="${urlEdicionJson}" target="_blank" class="btn btn-add">➕ Registrar en inventario.json</a>
-                                
                                 <div style="background-color: #f6f8fa; padding: 12px; margin-top: 15px; border-radius: 6px; font-size: 0.75rem; font-family: monospace; color: #57606a; text-align: left; overflow-x: auto;">
                                     ,{<br>
                                     &nbsp;&nbsp;"familia": "${urlF}",<br>
@@ -180,7 +188,6 @@
                         }
                     } 
                     
-                    // CASO B: Búsqueda general (Solo Familia) -> Muestra lista resumen
                     else if (urlF && !urlID) {
                         const matchesFamilia = data.filter(item => 
                             item.familia && item.familia.toLowerCase().includes(urlF.toLowerCase())
@@ -206,14 +213,14 @@
                     }
 
                     else if (!urlF && urlID) {
-                        divResultado.innerHTML = `<div class="error">Por favor, especifica la Familia además del ID #${urlID} para realizar el cruce.</div>`;
+                        divResultado.innerHTML = `<div class="error">Por favor, especifica la Familia además del ID #${urlID}.</div>`;
                     }
                 })
                 .catch(error => {
-                    divResultado.innerHTML = `<div class="error">Error leyendo inventario.json. Revisa que la sintaxis de comas y corchetes sea correcta.</div>`;
+                    divResultado.innerHTML = `<div class="error">Error leyendo inventario.json. Verifica que los corchetes y comas estén bien cerrados en GitHub.</div>`;
                 });
         } else {
-            divResultado.innerHTML = `<div class="etiqueta" style="text-align: center; padding: 20px 0;">Ingresa los parámetros de búsqueda para consultar la base de datos.</div>`;
+            divResultado.innerHTML = `<div class="etiqueta" style="text-align: center; padding: 20px 0;">Ingresa la Familia y el ID en el buscador para comenzar.</div>`;
         }
     </script>
 </body>
