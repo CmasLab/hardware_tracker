@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tracking I+D - PMV</title>
+    <title>Tracking I+D - Control de Dispositivos</title>
     <style>
         body { font-family: system-ui, -apple-system, sans-serif; padding: 20px; background-color: #f6f8fa; display: flex; justify-content: center; }
-        .card { background: white; border: 1px solid #d0d7de; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); width: 100%; max-width: 450px; }
+        .card { background: white; border: 1px solid #d0d7de; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); width: 100%; max-width: 600px; }
         h1 { color: #24292f; font-size: 1.5rem; border-bottom: 1px solid #d0d7de; padding-bottom: 10px; margin-top: 0; text-align: center;}
         
         .search-container { display: flex; gap: 10px; margin-bottom: 25px; }
@@ -16,11 +16,20 @@
         .search-btn { background-color: #24292f; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; }
         .search-btn:hover { background-color: #000000; }
 
-        .etiqueta { font-size: 0.85rem; color: #57606a; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 15px; }
-        .valor { font-size: 1.1rem; color: #24292f; font-weight: 500; margin-top: 5px; }
-        .error { color: #cf222e; font-weight: bold; text-align: center; margin-top: 20px; }
+        /* Cuadrícula de metadatos */
+        .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .etiqueta { font-size: 0.8rem; color: #57606a; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 10px; font-weight: bold;}
+        .valor { font-size: 1.05rem; color: #24292f; font-weight: 500; margin-top: 2px; }
         
-        .btn { display: block; text-align: center; text-decoration: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; margin-top: 20px; }
+        /* Secciones de historial */
+        .seccion-historial { margin-top: 20px; padding-top: 15px; border-top: 1px dashed #d0d7de; }
+        .titulo-historial { font-size: 0.9rem; color: #24292f; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;}
+        .lista-historial { margin: 0; padding-left: 20px; font-size: 0.95rem; color: #24292f; }
+        .lista-historial li { margin-bottom: 4px; }
+        .sin-registro { font-size: 0.9rem; color: #8c959f; font-style: italic; }
+
+        .error { color: #cf222e; font-weight: bold; text-align: center; margin-top: 20px; }
+        .btn { display: block; text-align: center; text-decoration: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; margin-top: 25px; }
         .btn-edit { background-color: #f6f8fa; color: #0969da; border: 1px solid #d0d7de; }
         .btn-add { background-color: #2da44e; color: white; border: 1px solid #2da44e; }
         
@@ -43,29 +52,34 @@
     </div>
 
     <script>
-        // --- 1. FUNCIÓN DE BÚSQUEDA COMPUESTA ---
         function ejecutarBusqueda() {
             const f = document.getElementById('inputF').value.trim();
             const id = document.getElementById('inputID').value.trim();
-            
             let url = "?";
             if (f) url += "f=" + encodeURIComponent(f);
             if (id) url += (f ? "&" : "") + "id=" + encodeURIComponent(id);
-            
             if (f || id) window.location.href = url;
         }
 
         document.getElementById('inputF').addEventListener('keypress', e => { if (e.key === 'Enter') ejecutarBusqueda(); });
         document.getElementById('inputID').addEventListener('keypress', e => { if (e.key === 'Enter') ejecutarBusqueda(); });
 
-        // --- 2. LECTURA DE PARÁMETROS ---
         const parametros = new URLSearchParams(window.location.search);
         const urlF = parametros.get('f');
         const urlID = parametros.get('id');
         const divResultado = document.getElementById('resultado');
 
-        // REEMPLAZA ESTO POR TU URL REAL
-        const urlEdicionJson = "https://github.com/CmasLab/hardware_tracker/blob/Dev/inventario.json";
+        // REEMPLAZA ESTO POR TU URL REAL DE EDICIÓN
+        const urlEdicionJson = "https://github.com/TU_USUARIO/TU_REPOSITORIO/edit/main/inventario.json";
+
+        // Función auxiliar para renderizar listas de historial de manera limpia
+        function generarHtmlLista(lista) {
+            if (!lista || lista.length === 0) return '<div class="sin-registro">Sin registros acumulados.</div>';
+            let html = '<ul class="lista-historial">';
+            lista.forEach(item => { html += `<li>${item}</li>`; });
+            html += '</ul>';
+            return html;
+        }
 
         if (urlF || urlID) {
             if (urlF) document.getElementById('inputF').value = urlF;
@@ -75,7 +89,7 @@
                 .then(response => response.json())
                 .then(data => {
                     
-                    // CASO A: Búsqueda exacta (Familia + ID)
+                    // CASO A: Búsqueda exacta (Familia + ID) -> Muestra la ficha técnica completa
                     if (urlF && urlID) {
                         const dispositivo = data.find(item => 
                             item.familia && item.familia.toLowerCase() === urlF.toLowerCase() && 
@@ -84,35 +98,89 @@
                         
                         if (dispositivo) {
                             divResultado.innerHTML = `
-                                <div class="etiqueta">Familia y Registro</div>
-                                <div class="valor">${dispositivo.familia} - #${dispositivo.id}</div>
-                                <div class="etiqueta">Modelo</div>
-                                <div class="valor">${dispositivo.modelo || 'N/A'}</div>
-                                <div class="etiqueta">Versión Hardware</div>
-                                <div class="valor">${dispositivo.version || 'N/A'}</div>
-                                <div class="etiqueta">Estado Actual</div>
-                                <div class="valor">${dispositivo.estado || 'N/A'}</div>
-                                <hr style="margin-top: 25px; border: 0; border-top: 1px solid #d0d7de;">
-                                <a href="${urlEdicionJson}" target="_blank" class="btn btn-edit">✏️ Editar estado en GitHub</a>
+                                <div class="meta-grid">
+                                    <div>
+                                        <div class="etiqueta">Familia y Registro</div>
+                                        <div class="valor">${dispositivo.familia} - #${dispositivo.id}</div>
+                                    </div>
+                                    <div>
+                                        <div class="etiqueta">Modelo de Equipo</div>
+                                        <div class="valor">${dispositivo.modelo || 'N/A'}</div>
+                                    </div>
+                                    <div>
+                                        <div class="etiqueta">Ubicación Actual</div>
+                                        <div class="valor">${dispositivo.ubicacion || 'N/A'}</div>
+                                    </div>
+                                    <div>
+                                        <div class="etiqueta">Estado Operativo</div>
+                                        <div class="valor">${dispositivo.estado || 'N/A'}</div>
+                                    </div>
+                                    <div>
+                                        <div class="etiqueta">Responsable Asignado</div>
+                                        <div class="valor">${dispositivo.responsable || 'N/A'}</div>
+                                    </div>
+                                    <div>
+                                        <div class="etiqueta">Versión Inicial</div>
+                                        <div class="valor">${dispositivo.version || 'N/A'}</div>
+                                    </div>
+                                </div>
+
+                                <div class="seccion-historial">
+                                    <div class="titulo-historial">📜 Historial de Uso</div>
+                                    ${generarHtmlLista(dispositivo.historial_uso)}
+                                </div>
+
+                                <div class="seccion-historial">
+                                    <div class="titulo-historial">🔄 Préstamos y Devoluciones</div>
+                                    ${generarHtmlLista(dispositivo.prestamos)}
+                                </div>
+
+                                <div class="seccion-historial">
+                                    <div class="titulo-historial">🛠️ Cambios de Hardware</div>
+                                    ${generarHtmlLista(dispositivo.cambios_hw)}
+                                </div>
+
+                                <div class="seccion-historial">
+                                    <div class="titulo-historial">💻 Cambios de Firmware</div>
+                                    ${generarHtmlLista(dispositivo.cambios_fw)}
+                                </div>
+
+                                <div class="seccion-historial">
+                                    <div class="titulo-historial">📈 Evolución de Versiones</div>
+                                    ${generarHtmlLista(dispositivo.evolucion_versiones)}
+                                </div>
+
+                                <a href="${urlEdicionJson}" target="_blank" class="btn btn-edit">✏️ Editar Ficha / Registrar Evento</a>
                             `;
                         } else {
+                            // Dispositivo no encontrado -> Generador de plantilla con los nuevos campos vacíos
                             divResultado.innerHTML = `
                                 <div class="error">⚠️ No existe el ID #${urlID} en la familia "${urlF}".</div>
+                                <p style="text-align: center; color: #57606a; font-size: 0.9rem;">Copia la estructura inferior e incorpórala al final del archivo en GitHub para darlo de alta.</p>
+                                
                                 <a href="${urlEdicionJson}" target="_blank" class="btn btn-add">➕ Registrar en inventario.json</a>
-                                <div style="background-color: #f6f8fa; padding: 10px; margin-top: 15px; border-radius: 6px; font-size: 0.8rem; font-family: monospace; color: #57606a; text-align: left; overflow-x: auto;">
+                                
+                                <div style="background-color: #f6f8fa; padding: 12px; margin-top: 15px; border-radius: 6px; font-size: 0.75rem; font-family: monospace; color: #57606a; text-align: left; overflow-x: auto;">
                                     ,{<br>
                                     &nbsp;&nbsp;"familia": "${urlF}",<br>
                                     &nbsp;&nbsp;"id": "${urlID}",<br>
-                                    &nbsp;&nbsp;"modelo": "Modelo",<br>
+                                    &nbsp;&nbsp;"modelo": "Nombre",<br>
                                     &nbsp;&nbsp;"version": "v1.0",<br>
-                                    &nbsp;&nbsp;"estado": "🟢 En Stock"<br>
+                                    &nbsp;&nbsp;"ubicacion": "Laboratorio",<br>
+                                    &nbsp;&nbsp;"estado": "🟢 En Stock",<br>
+                                    &nbsp;&nbsp;"responsable": "Nombre",<br>
+                                    &nbsp;&nbsp;"historial_uso": [],<br>
+                                    &nbsp;&nbsp;"prestamos": [],<br>
+                                    &nbsp;&nbsp;"cambios_hw": [],<br>
+                                    &nbsp;&nbsp;"cambios_fw": [],<br>
+                                    &nbsp;&nbsp;"evolucion_versiones": []<br>
                                     }
                                 </div>
                             `;
                         }
                     } 
                     
-                    // CASO B: Búsqueda general (Solo Familia)
+                    // CASO B: Búsqueda general (Solo Familia) -> Muestra lista resumen
                     else if (urlF && !urlID) {
                         const matchesFamilia = data.filter(item => 
                             item.familia && item.familia.toLowerCase().includes(urlF.toLowerCase())
@@ -125,9 +193,9 @@
                                     <div class="lista-item">
                                         <div>
                                             <div style="font-weight:bold; color:#24292f;">#${disp.id} - ${disp.modelo || 'Sin modelo'}</div>
-                                            <div style="font-size:0.85rem; color:#57606a;">${disp.estado || 'N/A'}</div>
+                                            <div style="font-size:0.85rem; color:#57606a;">📍 ${disp.ubicacion || 'No asignada'} | ${disp.estado || 'N/A'}</div>
                                         </div>
-                                        <a href="?f=${encodeURIComponent(disp.familia)}&id=${disp.id}" class="btn-sm">Ver</a>
+                                        <a href="?f=${encodeURIComponent(disp.familia)}&id=${disp.id}" class="btn-sm">Ver Ficha</a>
                                     </div>
                                 `;
                             });
@@ -137,16 +205,15 @@
                         }
                     }
 
-                    // CASO C: Búsqueda errónea (Solo ID)
                     else if (!urlF && urlID) {
-                        divResultado.innerHTML = `<div class="error">Por favor, especifica también a qué Familia pertenece el ID #${urlID}.</div>`;
+                        divResultado.innerHTML = `<div class="error">Por favor, especifica la Familia además del ID #${urlID} para realizar el cruce.</div>`;
                     }
                 })
                 .catch(error => {
-                    divResultado.innerHTML = `<div class="error">Error leyendo inventario.json. Verifica la sintaxis del archivo.</div>`;
+                    divResultado.innerHTML = `<div class="error">Error leyendo inventario.json. Revisa que la sintaxis de comas y corchetes sea correcta.</div>`;
                 });
         } else {
-            divResultado.innerHTML = `<div class="etiqueta" style="text-align: center; padding: 20px 0;">Ingresa la Familia y el ID en el buscador para comenzar.</div>`;
+            divResultado.innerHTML = `<div class="etiqueta" style="text-align: center; padding: 20px 0;">Ingresa los parámetros de búsqueda para consultar la base de datos.</div>`;
         }
     </script>
 </body>
