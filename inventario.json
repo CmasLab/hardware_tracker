@@ -1,23 +1,54 @@
 [
   {
-    "familia": "Hiri",
+    "familia": "Gases",
     "id": "1",
-    "modelo": "Sensor de Humedal",
+    "modelo": "Nodo Sensor Humedal",
     "version": "v1.0",
-    "estado": "🟢 En Stock"
+    "ubicacion": "Humedal Batuco (Santiago)",
+    "estado": "🟢 En Terreno",
+    "responsable": "Ignacio Silva",
+    "historial_uso": [
+      "10/05/2026 - Despliegue inicial en zona norte del humedal.",
+      "25/05/2026 - Inspección visual rutinaria sin novedades."
+    ],
+    "prestamos": [
+      "09/05/2026 - Retirado de laboratorio por Ignacio Silva para campaña en terreno."
+    ],
+    "cambios_hw": [
+      "05/05/2026 - Modificación del circuito de acondicionamiento de señal para el sensor MOX."
+    ],
+    "cambios_fw": [
+      "08/05/2026 - Carga de firmware v1.0.2 (Optimización del ciclo de sueño para ahorro de batería)."
+    ],
+    "evolucion_versiones": [
+      "Etapa 1 física: Montaje en gabinete estanco con prensaestopas.",
+      "Etapa 1 funcional: Lectura local de sensores y transmisión vía protocolo optimizado."
+    ]
   },
   {
-    "familia": "Linea base",
+    "familia": "Particulas",
     "id": "1",
     "modelo": "Monitor PM3003Q",
-    "version": "v2.1",
-    "estado": "🔵 En Terreno"
-  },
-  {
-    "familia": "Hiri",
-    "id": "2",
-    "modelo": "Monitor PM3003Q",
-    "version": "v2.1",
-    "estado": "En Stock"
+    "version": "v2.0",
+    "ubicacion": "Laboratorio (Stock)",
+    "estado": "🟡 En Mantenimiento",
+    "responsable": "Equipo I+D",
+    "historial_uso": [
+      "12/04/2026 - Pruebas de estrés en cámara de polvo industrial.",
+      "02/05/2026 - Retirado de terreno por fallas en la comunicación UART."
+    ],
+    "prestamos": [
+      "11/04/2026 - Entregado a ingeniería para calibración.",
+      "03/05/2026 - Devuelto a laboratorio para reparación."
+    ],
+    "cambios_hw": [
+      "04/05/2026 - Limpieza profunda de la cámara óptica del sensor PM100."
+    ],
+    "cambios_fw": [
+      "15/04/2026 - Actualización a firmware de diagnóstico v2.0.1-beta."
+    ],
+    "evolucion_versiones": [
+      "Etapa 1 física: Prototipo en placa de desarrollo con ventilación forzada."
+    ]
   }
 ]
