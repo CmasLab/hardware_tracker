@@ -6,7 +6,10 @@
     "version": "v1.0",
     "ubicacion": "Humedal Batuco (Santiago)",
     "estado": "🟢 En Terreno",
-    "responsable": "Ignacio Silva"
+    "responsable": "Ignacio Silva",
+    "historial_uso":[
+      "10/05/2026 - Lo tiene Zoe"
+    ]
   },
   {
     "familia": "Particulas",
