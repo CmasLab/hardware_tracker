@@ -9,6 +9,18 @@
     "responsable": "Ignacio Silva",
     "historial_uso":[
       "10/05/2026 - Lo tiene Zoe"
+    ],
+    "prestamos":[
+     "05/05/2026 - Retirado del laboratorio" 
+    ],
+    "cambios_hw":[
+      "08/05/2026 - Modificación del circuito"
+    ],
+    "cambios_fw":[
+      "08/05/2026 - Carga de firmware v1.0"
+    ],
+    "evolucion_versiones":[
+      "Etapa 1 física: Montaje en gabinete estanco con prensaestopas"
     ]
   },
   {
@@ -18,6 +30,21 @@
     "version": "v2.0",
     "ubicacion": "Laboratorio (Stock)",
     "estado": "🟡 En Mantenimiento",
-    "responsable": "Equipo I+D"
+    "responsable": "Equipo I+D",
+        "historial_uso":[
+      "10/05/2026 - Lo tiene Zoe"
+    ],
+    "prestamos":[
+     "05/05/2026 - Retirado del laboratorio" 
+    ],
+    "cambios_hw":[
+      "08/05/2026 - Modificación del circuito"
+    ],
+    "cambios_fw":[
+      "08/05/2026 - Carga de firmware v1.0"
+    ],
+    "evolucion_versiones":[
+      "Etapa 1 física: Montaje en gabinete estanco con prensaestopas"
+    ]
   }
 ]
